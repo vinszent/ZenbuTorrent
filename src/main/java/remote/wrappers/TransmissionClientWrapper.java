@@ -124,6 +124,8 @@ public class TransmissionClientWrapper implements ClientWrapper
         HashMap root;
         ArrayList<HashMap> torrents;
 
+        ArrayList<RemoteTorrent> returned = new ArrayList<>();
+
         fields.add("id");
         fields.add("status");
         fields.add("name");
@@ -153,7 +155,7 @@ public class TransmissionClientWrapper implements ClientWrapper
             String title = (String) hm.get("name");
             String filepath = (String) hm.get("downloadDir");
             long size = (long) hm.get("sizeWhenDone");
-            long progress = (long) hm.get("percentDone");
+            Number progress = (Number) hm.get("percentDone");
             long downloaded = (long) hm.get("downloadedEver");
             long uploaded = (long) hm.get("uploadedEver");
             Number ratio = (Number) hm.get("uploadRatio");
@@ -192,7 +194,7 @@ public class TransmissionClientWrapper implements ClientWrapper
             }
 
             RemoteTorrent rt = new RemoteTorrent((int) id, title, filepath, size);
-            rt.setProgress((double) progress / 1000.0); //Convert to promille
+            rt.setProgress(progress.doubleValue()); //Convert to promille
             rt.setDownloaded(downloaded);
             rt.setUploaded(uploaded);
             rt.setDownloadSpeed(downloadSpeed);
@@ -202,10 +204,11 @@ public class TransmissionClientWrapper implements ClientWrapper
             rt.setRemaining(remaining);
             rt.setStatus(remoteTorrentStatus);
 
-            Log.debug("Torrent: " + rt.getTitle() + " : " + rt.getStatus());
+            returned.add(rt);
+            //Log.debug("Torrent: " + rt.getTitle() + " : " + rt.getStatus());
         }
 
-        return null;
+        return returned;
     };
 
     //Class specific methods
@@ -251,7 +254,6 @@ public class TransmissionClientWrapper implements ClientWrapper
             }
             in.close();
 
-            System.out.println(response.toString());
             switch(responseCode)
             {
                 case 200:
