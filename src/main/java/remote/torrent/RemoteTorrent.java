@@ -2,7 +2,8 @@ package main.java.remote.torrent;
 
 public class RemoteTorrent
 {
-    private String infoHash;
+    private String stringId;
+    private int intId;
     private String title;
     private String filepath;
     private RemoteTorrentStatus status;
@@ -16,22 +17,40 @@ public class RemoteTorrent
     private long downloadSpeed; //In bytes per second
     private long eta; //In seconds
 
-    public RemoteTorrent(String infoHash, String title, String filepath, long size)
+    public RemoteTorrent(String stringId, String title, String filepath, long size)
     {
-        this.infoHash = infoHash;
+        this.stringId = stringId;
         this.title = title;
         this.filepath = filepath;
         this.size = size;
     }
 
-    public String getInfoHash()
+    public RemoteTorrent(int intId, String title, String filepath, long size)
     {
-        return infoHash;
+        this.intId = intId;
+        this.title = title;
+        this.filepath = filepath;
+        this.size = size;
     }
 
-    public void setInfoHash(String infoHash)
+    public String getStringId()
     {
-        this.infoHash = infoHash;
+        return stringId;
+    }
+
+    public void setStringId(String infoHash)
+    {
+        this.stringId = infoHash;
+    }
+
+    public int getIntId()
+    {
+        return intId;
+    }
+
+    public void setIntId(int intId)
+    {
+        this.intId = intId;
     }
 
     public String getTitle()

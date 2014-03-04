@@ -209,7 +209,7 @@ public class TransmissionClientWrapper implements ClientWrapper
     };
 
     //Class specific methods
-    public String sendRequest(JSONObject data)
+    private String sendRequest(JSONObject data)
     {
         URL apiUrl;
         HttpURLConnection conn = null;
@@ -276,7 +276,7 @@ public class TransmissionClientWrapper implements ClientWrapper
         return returned;
     }
 
-    public void getAuthToken()
+    private void getAuthToken()
     {
         URL apiUrl;
         HttpURLConnection conn = null;

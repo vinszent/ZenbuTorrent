@@ -53,14 +53,14 @@ public class UtorrentClientWrapper implements ClientWrapper
     @Override
     public void pauseTorrent(RemoteTorrent remoteTorrent)
     {
-        sendRequest("action=pause&hash=" + remoteTorrent.getInfoHash());
+        sendRequest("action=pause&hash=" + remoteTorrent.getStringId());
         Log.info("Paused torrent: " + remoteTorrent.getTitle() + "on uTorrent");
     }
 
     @Override
     public void resumeTorrent(RemoteTorrent remoteTorrent)
     {
-        sendRequest("action=resume&hash=" + remoteTorrent.getInfoHash());
+        sendRequest("action=resume&hash=" + remoteTorrent.getStringId());
         Log.info("Resumed torrent: " + remoteTorrent.getTitle() + "on uTorrent");
     }
 
@@ -77,7 +77,7 @@ public class UtorrentClientWrapper implements ClientWrapper
 
         for(ArrayList al : torrents)
         {
-            String infoHash = (String) al.get(0);
+            String id = (String) al.get(0);
             BitSet status = BitSet.valueOf(new byte[]{(byte) ((Long) al.get(1)).intValue()});
             String title = (String) al.get(2);
             long size = (long) al.get(3);
@@ -125,7 +125,7 @@ public class UtorrentClientWrapper implements ClientWrapper
                 remoteTorrentStatus = RemoteTorrentStatus.WAITING;
             }
 
-            RemoteTorrent rt = new RemoteTorrent(infoHash, title, filepath, size);
+            RemoteTorrent rt = new RemoteTorrent(id, title, filepath, size);
             rt.setProgress((double) progress / 1000.0); //Convert to promille
             rt.setDownloaded(downloaded);
             rt.setUploaded(uploaded);
@@ -143,7 +143,7 @@ public class UtorrentClientWrapper implements ClientWrapper
     }        
 
     //Class specific methods
-    public void uploadFile(File file)
+    private void uploadFile(File file)
     {
         String authToken = getAuthToken();
         URL apiUrl;
@@ -227,7 +227,7 @@ public class UtorrentClientWrapper implements ClientWrapper
         }
     }        
 
-    public String sendRequest(String arg)
+    private String sendRequest(String arg)
     {
         String authToken = getAuthToken();
         URL apiUrl;
@@ -281,7 +281,7 @@ public class UtorrentClientWrapper implements ClientWrapper
         return returned;
     }        
 
-    public String getAuthToken()
+    private String getAuthToken()
     {
        String authToken = null;
        URL apiUrl;
