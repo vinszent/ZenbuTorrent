@@ -6,8 +6,9 @@ Info
 ============
 ZenbuTorrent is divided into two main parts, local and remote. Both of these are WIP and are not complete yet.
 
-Primary mercurial repo: [bb](https://bitbucket.org/Ippytraxx/zenbutorrent/overview)
-Git mirror: [gh](https://github.com/Ippytraxx/ZenbuTorrent)
+Primary mercurial repo: [Bitbucket](https://bitbucket.org/Ippytraxx/zenbutorrent/overview)
+
+Git mirror: [GitHub](https://github.com/Ippytraxx/ZenbuTorrent)
 
 Local
 ------------
