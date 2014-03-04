@@ -2,8 +2,8 @@ package main.java.remote.torrent;
 
 public class RemoteTorrent
 {
-    private String stringId;
-    private int intId;
+    private String stringId = "";
+    private int intId = -1;
     private String title;
     private String filepath;
     private RemoteTorrentStatus status;
@@ -171,5 +171,23 @@ public class RemoteTorrent
     public void setEta(long eta)
     {
         this.eta = eta;
+    }
+
+    @Override
+    public boolean equals(Object object)
+    {
+        boolean same = false;
+
+        if(object != null && object instanceof RemoteTorrent)
+        {
+            RemoteTorrent rt = (RemoteTorrent) object;
+
+            if(rt.getIntId() == this.getIntId() || rt.getStringId() == this.getStringId())
+            {
+                same = true;
+            }
+        }
+
+        return same;
     }
 }
