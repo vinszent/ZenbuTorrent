@@ -1,194 +1,49 @@
 package moe.zenbutorrent.main.java.remote.torrent;
 
-
-public class RemoteTorrent
+public interface RemoteTorrent
 {
-    private String stringId = "";
-    private int intId = -1;
-    private String title;
-    private String filepath;
-    private RemoteTorrentStatus status;
-    private long size; //In bytes
-    private double progress; //In promille ex: 0.0523 = 5.23%
-    private long remaining; //In bytes
-    private long downloaded; //In bytes
-    private long uploaded; //In bytes
-    private double ratio; //In promille
-    private long uploadSpeed; //In bytes per second
-    private long downloadSpeed; //In bytes per second
-    private long eta; //In seconds
+    public String getStringId();
+    public void setStringId(String infoHash);
 
-    public RemoteTorrent(String stringId, String title, String filepath, long size)
-    {
-        this.stringId = stringId;
-        this.title = title;
-        this.filepath = filepath;
-        this.size = size;
-    }
+    public int getIntId();
+    public void setIntId(int intId);
 
-    public RemoteTorrent(int intId, String title, String filepath, long size)
-    {
-        this.intId = intId;
-        this.title = title;
-        this.filepath = filepath;
-        this.size = size;
-    }
+    public String getTitle();
+    public void setTitle(String title);
 
-    public String getStringId()
-    {
-        return stringId;
-    }
+    public String getFilepath();
+    public void setFilepath(String filepath);
 
-    public void setStringId(String infoHash)
-    {
-        this.stringId = infoHash;
-    }
+    public RemoteTorrentStatus getStatus();
+    public void setStatus(RemoteTorrentStatus status);
 
-    public int getIntId()
-    {
-        return intId;
-    }
+    public long getSize();
+    public void setSize(long size);
 
-    public void setIntId(int intId)
-    {
-        this.intId = intId;
-    }
+    public double getProgress();
+    public void setProgress(double progress);
 
-    public String getTitle()
-    {
-        return title;
-    }
+    public long getRemaining();
+    public void setRemaining(long remaining);
 
-    public void setTitle(String title)
-    {
-        this.title = title;
-    }
+    public long getDownloaded();
+    public void setDownloaded(long downloaded);
 
-    public String getFilepath()
-    {
-        return filepath;
-    }
+    public long getUploaded();
+    public void setUploaded(long uploaded);
 
-    public void setFilepath(String filepath)
-    {
-        this.filepath = filepath;
-    }
+    public double getRatio();
+    public void setRatio(double ratio);
 
-    public RemoteTorrentStatus getStatus()
-    {
-        return status;
-    }
+    public long getUploadSpeed();
+    public void setUploadSpeed(long uploadSpeed);
 
-    public void setStatus(RemoteTorrentStatus status)
-    {
-        this.status = status;
-    }
+    public long getDownloadSpeed();
+    public void setDownloadSpeed(long downloadSpeed);
 
-    public long getSize()
-    {
-        return size;
-    }
-
-    public void setSize(long size)
-    {
-        this.size = size;
-    }
-
-    public double getProgress()
-    {
-        return progress;
-    }
-
-    public void setProgress(double progress)
-    {
-        this.progress = progress;
-    }
-
-    public long getRemaining()
-    {
-        return remaining;
-    }
-
-    public void setRemaining(long remaining)
-    {
-        this.remaining = remaining;
-    }
-
-    public long getDownloaded()
-    {
-        return downloaded;
-    }
-
-    public void setDownloaded(long downloaded)
-    {
-        this.downloaded = downloaded;
-    }
-
-    public long getUploaded()
-    {
-        return uploaded;
-    }
-
-    public void setUploaded(long uploaded)
-    {
-        this.uploaded = uploaded;
-    }
-
-    public double getRatio()
-    {
-        return ratio;
-    }
-
-    public void setRatio(double ratio)
-    {
-        this.ratio = ratio;
-    }
-
-    public long getUploadSpeed()
-    {
-        return uploadSpeed;
-    }
-
-    public void setUploadSpeed(long uploadSpeed)
-    {
-        this.uploadSpeed = uploadSpeed;
-    }
-
-    public long getDownloadSpeed()
-    {
-        return downloadSpeed;
-    }
-
-    public void setDownloadSpeed(long downloadSpeed)
-    {
-        this.downloadSpeed = downloadSpeed;
-    }
-
-    public long getEta()
-    {
-        return eta;
-    }
-
-    public void setEta(long eta)
-    {
-        this.eta = eta;
-    }
+    public long getEta();
+    public void setEta(long eta);
 
     @Override
-    public boolean equals(Object object)
-    {
-        boolean same = false;
-
-        if(object != null && object instanceof RemoteTorrent)
-        {
-            RemoteTorrent rt = (RemoteTorrent) object;
-
-            if((rt.getIntId() != -1 && rt.getIntId() == this.getIntId()) || (!rt.getStringId().isEmpty() && rt.getStringId() == this.getStringId()))
-            {
-                same = true;
-            }
-        }
-
-        return same;
-    }
+    public boolean equals(Object object);
 }
