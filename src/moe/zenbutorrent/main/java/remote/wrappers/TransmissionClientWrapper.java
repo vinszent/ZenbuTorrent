@@ -3,7 +3,6 @@ package moe.zenbutorrent.main.java.remote.wrappers;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -14,6 +13,7 @@ import java.util.HashMap;
 import javax.xml.bind.DatatypeConverter;
 
 import moe.zenbutorrent.main.java.logging.Log;
+import moe.zenbutorrent.main.java.remote.torrent.DefaultRemoteTorrent;
 import moe.zenbutorrent.main.java.remote.torrent.RemoteTorrent;
 import moe.zenbutorrent.main.java.remote.torrent.RemoteTorrentStatus;
 
@@ -94,7 +94,7 @@ public class TransmissionClientWrapper implements ClientWrapper
     };
 
     @Override
-    public void pauseTorrent(RemoteTorrent remoteTorrent)
+    public void pauseTorrent(DefaultRemoteTorrent remoteTorrent)
     {
         JSONObject data = new JSONObject();
         HashMap arguments = new HashMap();
@@ -108,7 +108,7 @@ public class TransmissionClientWrapper implements ClientWrapper
     };
 
     @Override
-    public void resumeTorrent(RemoteTorrent remoteTorrent)
+    public void resumeTorrent(DefaultRemoteTorrent remoteTorrent)
     {
         JSONObject data = new JSONObject();
         HashMap arguments = new HashMap();
@@ -122,7 +122,7 @@ public class TransmissionClientWrapper implements ClientWrapper
     };
 
     @Override
-    public ArrayList<RemoteTorrent> getAllTorrents()
+    public ArrayList<DefaultRemoteTorrent> getAllTorrents()
     {
         JSONObject data = new JSONObject();
         HashMap arguments = new HashMap();
@@ -130,7 +130,7 @@ public class TransmissionClientWrapper implements ClientWrapper
         HashMap root;
         ArrayList<HashMap> torrents;
 
-        ArrayList<RemoteTorrent> returned = new ArrayList<>();
+        ArrayList<DefaultRemoteTorrent> returned = new ArrayList<>();
 
         fields.add("id");
         fields.add("status");
@@ -199,7 +199,7 @@ public class TransmissionClientWrapper implements ClientWrapper
                         break;
             }
 
-            RemoteTorrent rt = new RemoteTorrent((int) id, title, filepath, size);
+            DefaultRemoteTorrent rt = new DefaultRemoteTorrent((int) id, title, filepath, size);
             rt.setProgress(progress.doubleValue()); //Convert to promille
             rt.setDownloaded(downloaded);
             rt.setUploaded(uploaded);
@@ -215,6 +215,100 @@ public class TransmissionClientWrapper implements ClientWrapper
         }
 
         return returned;
+    };
+
+    @Override
+    public void updateAllTorrents(ArrayList<RemoteTorrent> userList)
+    {
+        JSONObject data = new JSONObject();
+        HashMap arguments = new HashMap();
+        ArrayList<String> fields = new ArrayList<>();
+        HashMap root;
+        ArrayList<HashMap> torrents;
+
+        fields.add("id");
+        fields.add("status");
+        fields.add("name");
+        fields.add("percentDone");
+        fields.add("downloadedEver");
+        fields.add("uploadedEver");
+        fields.add("uploadRatio");
+        fields.add("sizeWhenDone");
+        fields.add("leftUntilDone");
+        fields.add("rateDownload");
+        fields.add("rateUpload");
+        fields.add("eta");
+        fields.add("downloadDir");
+
+        arguments.put("fields", fields);
+
+        data.put("arguments", arguments);
+        data.put("method", "torrent-get");
+
+        root = (HashMap) JSONValue.parse(sendRequest(data));
+        torrents = (ArrayList<HashMap>) ((HashMap) root.get("arguments")).get("torrents");
+
+        for(HashMap hm : torrents)
+        {
+            long id = (long) hm.get("id");
+            long status = (long) hm.get("status");
+            String title = (String) hm.get("name");
+            String filepath = (String) hm.get("downloadDir");
+            long size = (long) hm.get("sizeWhenDone");
+            Number progress = (Number) hm.get("percentDone");
+            long downloaded = (long) hm.get("downloadedEver");
+            long uploaded = (long) hm.get("uploadedEver");
+            Number ratio = (Number) hm.get("uploadRatio");
+            long uploadSpeed = (long) hm.get("rateUpload");
+            long downloadSpeed = (long) hm.get("rateDownload");
+            long eta = (long) hm.get("eta");
+            long remaining = (long) hm.get("leftUntilDone");
+
+            RemoteTorrentStatus remoteTorrentStatus = null;
+            switch((int) status)
+            {
+                case 0:
+                        remoteTorrentStatus = RemoteTorrentStatus.PAUSED;
+                        break;
+                case 1:
+                        remoteTorrentStatus = RemoteTorrentStatus.WAITING;
+                        break;
+                case 2:
+                        remoteTorrentStatus = RemoteTorrentStatus.CHECKING;
+                        break;
+                case 3:
+                        remoteTorrentStatus = RemoteTorrentStatus.QUEUED;
+                        break;
+                case 4:
+                        remoteTorrentStatus = RemoteTorrentStatus.DOWNLOADING;
+                        break;
+                case 5:
+                        remoteTorrentStatus = RemoteTorrentStatus.QUEUED;
+                        break;
+                case 6:
+                        remoteTorrentStatus = RemoteTorrentStatus.SEEDING;
+                        break;
+                default:
+                        remoteTorrentStatus = RemoteTorrentStatus.UNKOWN;
+                        break;
+            }
+
+            for(RemoteTorrent rt : userList)
+            {
+                if(rt.getStringId().equals(id))
+                {
+                    rt.setProgress(progress.doubleValue());
+                    rt.setDownloaded(downloaded);
+                    rt.setUploaded(uploaded);
+                    rt.setDownloadSpeed(downloadSpeed);
+                    rt.setUploadSpeed(uploadSpeed);
+                    rt.setEta(eta);
+                    rt.setRatio(ratio.doubleValue());
+                    rt.setRemaining(remaining);
+                    rt.setStatus(remoteTorrentStatus);
+                }
+            }
+        }
     };
 
     //Class specific methods
