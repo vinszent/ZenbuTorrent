@@ -1,9 +1,8 @@
 package moe.zenbutorrent.main.java.remote.wrappers;
 
 import java.io.File;
-import java.util.ArrayList;
+import java.util.List;
 
-import moe.zenbutorrent.main.java.remote.torrent.DefaultRemoteTorrent;
 import moe.zenbutorrent.main.java.remote.torrent.RemoteTorrent;
 
 public interface ClientWrapper
@@ -12,11 +11,15 @@ public interface ClientWrapper
 
     public void addTorrent(File file);
 
-    public void pauseTorrent(DefaultRemoteTorrent remoteTorrent);
+    public void pauseTorrent(RemoteTorrent remoteTorrent);
 
-    public void resumeTorrent(DefaultRemoteTorrent remoteTorrent);
+    public void resumeTorrent(RemoteTorrent remoteTorrent);
 
-    public ArrayList<DefaultRemoteTorrent> getAllTorrents();
+    public void deleteTorrent(RemoteTorrent remoteTorrent);
 
-    public void updateAllTorrents(ArrayList<RemoteTorrent> torrents, Class<? extends RemoteTorrent> c);
+    public void deleteTorrentAndData(RemoteTorrent remoteTorrent);
+
+    public List<? extends RemoteTorrent> getAllTorrents();
+
+    public void updateAllTorrents(List<RemoteTorrent> torrents, Class<? extends RemoteTorrent> c);
 }

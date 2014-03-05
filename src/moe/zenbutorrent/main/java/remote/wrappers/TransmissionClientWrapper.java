@@ -9,6 +9,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -94,7 +95,7 @@ public class TransmissionClientWrapper implements ClientWrapper
     };
 
     @Override
-    public void pauseTorrent(DefaultRemoteTorrent remoteTorrent)
+    public void pauseTorrent(RemoteTorrent remoteTorrent)
     {
         JSONObject data = new JSONObject();
         HashMap arguments = new HashMap();
@@ -108,7 +109,7 @@ public class TransmissionClientWrapper implements ClientWrapper
     };
 
     @Override
-    public void resumeTorrent(DefaultRemoteTorrent remoteTorrent)
+    public void resumeTorrent(RemoteTorrent remoteTorrent)
     {
         JSONObject data = new JSONObject();
         HashMap arguments = new HashMap();
@@ -122,7 +123,36 @@ public class TransmissionClientWrapper implements ClientWrapper
     };
 
     @Override
-    public ArrayList<DefaultRemoteTorrent> getAllTorrents()
+    public void deleteTorrent(RemoteTorrent remoteTorrent)
+    {
+        JSONObject data = new JSONObject();
+        HashMap arguments = new HashMap();
+
+        arguments.put("id", remoteTorrent.getNumberId());
+
+        data.put("arguments", arguments);
+        data.put("method", "torrent-remove");
+
+        sendRequest(data);
+    }        
+
+    @Override
+    public void deleteTorrentAndData(RemoteTorrent remoteTorrent)
+    {
+        JSONObject data = new JSONObject();
+        HashMap arguments = new HashMap();
+
+        arguments.put("id", remoteTorrent.getNumberId());
+        arguments.put("delete-local-data", true);
+
+        data.put("arguments", arguments);
+        data.put("method", "torrent-remove");
+
+        sendRequest(data);
+    }        
+
+    @Override
+    public List<DefaultRemoteTorrent> getAllTorrents()
     {
         JSONObject data = new JSONObject();
         HashMap arguments = new HashMap();
@@ -218,7 +248,7 @@ public class TransmissionClientWrapper implements ClientWrapper
     };
 
     @Override
-    public void updateAllTorrents(ArrayList<RemoteTorrent> userList, Class<? extends RemoteTorrent> c)
+    public void updateAllTorrents(List<RemoteTorrent> userList, Class<? extends RemoteTorrent> c)
     {
         JSONObject data = new JSONObject();
         HashMap arguments = new HashMap();
@@ -308,6 +338,8 @@ public class TransmissionClientWrapper implements ClientWrapper
                     rt.setRatio(ratio.doubleValue());
                     rt.setRemaining(remaining);
                     rt.setStatus(remoteTorrentStatus);
+
+                    exists = true;
                 }
             }
 
@@ -342,6 +374,8 @@ public class TransmissionClientWrapper implements ClientWrapper
                 rt.setRatio(ratio.doubleValue());
                 rt.setRemaining(remaining);
                 rt.setStatus(remoteTorrentStatus);
+
+                userList.add(rt);
             }
         }
     };

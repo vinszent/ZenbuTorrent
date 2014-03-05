@@ -10,6 +10,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -52,21 +53,35 @@ public class UtorrentClientWrapper implements ClientWrapper
     }        
 
     @Override
-    public void pauseTorrent(DefaultRemoteTorrent remoteTorrent)
+    public void pauseTorrent(RemoteTorrent remoteTorrent)
     {
         sendRequest("action=pause&hash=" + remoteTorrent.getStringId());
-        Log.info("Paused torrent: " + remoteTorrent.getTitle() + "on uTorrent");
+        Log.info("Paused torrent: " + remoteTorrent.getTitle() + " on uTorrent");
     }
 
     @Override
-    public void resumeTorrent(DefaultRemoteTorrent remoteTorrent)
+    public void resumeTorrent(RemoteTorrent remoteTorrent)
     {
         sendRequest("action=resume&hash=" + remoteTorrent.getStringId());
-        Log.info("Resumed torrent: " + remoteTorrent.getTitle() + "on uTorrent");
+        Log.info("Resumed torrent: " + remoteTorrent.getTitle() + " on uTorrent");
     }
 
     @Override
-    public ArrayList<DefaultRemoteTorrent> getAllTorrents()
+    public void deleteTorrent(RemoteTorrent remoteTorrent)
+    {
+        sendRequest("action=remove&hash=" + remoteTorrent.getStringId());
+        Log.info("Deleted torrent: " + remoteTorrent.getTitle() + " on uTorrent");
+    }        
+
+    @Override
+    public void deleteTorrentAndData(RemoteTorrent remoteTorrent)
+    {
+        sendRequest("action=removedata&hash=" + remoteTorrent.getStringId());
+        Log.info("Deleted torrent and data: " + remoteTorrent.getTitle() + " on uTorrent");
+    }        
+
+    @Override
+    public List<DefaultRemoteTorrent> getAllTorrents()
     {
         ArrayList<DefaultRemoteTorrent> returned = new ArrayList<>();
 
@@ -144,7 +159,7 @@ public class UtorrentClientWrapper implements ClientWrapper
     }        
 
     @Override
-    public void updateAllTorrents(ArrayList<RemoteTorrent> userList, Class<? extends RemoteTorrent> c)
+    public void updateAllTorrents(List<RemoteTorrent> userList, Class<? extends RemoteTorrent> c)
     {
         HashMap root;
         ArrayList<ArrayList> torrents;
@@ -253,6 +268,8 @@ public class UtorrentClientWrapper implements ClientWrapper
                 rt.setRatio((double) ratio / 1000.0); //Convert to promille
                 rt.setRemaining(remaining);
                 rt.setStatus(remoteTorrentStatus);
+
+                userList.add(rt);
             }
         }
     }        
