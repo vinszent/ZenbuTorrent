@@ -295,7 +295,7 @@ public class TransmissionClientWrapper implements ClientWrapper
 
             for(RemoteTorrent rt : userList)
             {
-                if(rt.getStringId().equals(id))
+                if(rt.getIntId() == id)
                 {
                     rt.setProgress(progress.doubleValue());
                     rt.setDownloaded(downloaded);
