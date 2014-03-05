@@ -296,6 +296,8 @@ public class TransmissionClientWrapper implements ClientWrapper
             long eta = (long) hm.get("eta");
             long remaining = (long) hm.get("leftUntilDone");
 
+            exists = false;
+
             RemoteTorrentStatus remoteTorrentStatus = null;
             switch((int) status)
             {

@@ -7,6 +7,8 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
@@ -44,6 +46,7 @@ public class UtorrentClientWrapper implements ClientWrapper
     @Override
     public void addTorrent(String url)
     {
+        url = URLEncoder.encode(url);
         sendRequest("action=add-url&s=" + url);
     }
 
@@ -62,7 +65,7 @@ public class UtorrentClientWrapper implements ClientWrapper
     @Override
     public void resumeTorrent(RemoteTorrent remoteTorrent)
     {
-        sendRequest("action=resume&hash=" + remoteTorrent.getStringId());
+        sendRequest("action=unpause&hash=" + remoteTorrent.getStringId());
         Log.info("Resumed torrent: " + remoteTorrent.getTitle() + " on uTorrent");
     }
 
@@ -184,6 +187,8 @@ public class UtorrentClientWrapper implements ClientWrapper
             long eta = (long) al.get(10);
             long remaining = (long) al.get(18);
             String filepath = (String) al.get(26);
+
+            exists = false;
 
             //Convert status
             RemoteTorrentStatus remoteTorrentStatus;
@@ -406,7 +411,7 @@ public class UtorrentClientWrapper implements ClientWrapper
         }
         catch(Exception e)
         {
-            Log.error("Could not get uTorrent auth token", e);
+            Log.error("Could not send request to uTorrent", e);
             return null;
         }
 
