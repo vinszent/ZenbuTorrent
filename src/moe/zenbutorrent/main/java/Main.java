@@ -4,10 +4,8 @@ import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
-import main.java.remote.client.RemoteClient;
 import moe.zenbutorrent.main.java.local.torrent.MetainfoFile;
 import moe.zenbutorrent.main.java.logging.Log;
-import moe.zenbutorrent.main.java.remote.torrent.RemoteTorrent;
 import moe.zenbutorrent.main.java.remote.wrappers.TransmissionClientWrapper;
 
 public class Main

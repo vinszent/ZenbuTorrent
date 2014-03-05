@@ -4,7 +4,7 @@ package moe.zenbutorrent.main.java.remote.torrent;
 public class DefaultRemoteTorrent implements RemoteTorrent
 {
     private String stringId = "";
-    private int intId = -1;
+    private Number numberId = -1;
     private String title;
     private String filepath;
     private RemoteTorrentStatus status;
@@ -26,9 +26,9 @@ public class DefaultRemoteTorrent implements RemoteTorrent
         this.size = size;
     }
 
-    public DefaultRemoteTorrent(int intId, String title, String filepath, long size)
+    public DefaultRemoteTorrent(Number numberId, String title, String filepath, long size)
     {
-        this.intId = intId;
+        this.numberId = numberId;
         this.title = title;
         this.filepath = filepath;
         this.size = size;
@@ -44,14 +44,14 @@ public class DefaultRemoteTorrent implements RemoteTorrent
         this.stringId = infoHash;
     }
 
-    public int getIntId()
+    public Number getNumberId()
     {
-        return intId;
+        return numberId;
     }
 
-    public void setIntId(int intId)
+    public void setNumberId(Number numberId)
     {
-        this.intId = intId;
+        this.numberId = numberId;
     }
 
     public String getTitle()
@@ -183,7 +183,7 @@ public class DefaultRemoteTorrent implements RemoteTorrent
         {
             DefaultRemoteTorrent rt = (DefaultRemoteTorrent) object;
 
-            if((rt.getIntId() != -1 && rt.getIntId() == this.getIntId()) || (!rt.getStringId().isEmpty() && rt.getStringId() == this.getStringId()))
+            if((rt.getNumberId() != -1 && rt.getNumberId() == this.getNumberId()) || (!rt.getStringId().isEmpty() && rt.getStringId() == this.getStringId()))
             {
                 same = true;
             }

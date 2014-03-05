@@ -3,7 +3,7 @@ package moe.zenbutorrent.main.java.remote.wrappers;
 import java.io.File;
 import java.util.ArrayList;
 
-import moe.zenbutorrent.main.java.remote.torrent.RemoteTorrent;
+import moe.zenbutorrent.main.java.remote.torrent.DefaultRemoteTorrent;
 
 public class VuzeClientWrapper implements ClientWrapper
 {
@@ -17,15 +17,15 @@ public class VuzeClientWrapper implements ClientWrapper
     {
     };
 
-    public void pauseTorrent(RemoteTorrent remoteTorrent)
+    public void pauseTorrent(DefaultRemoteTorrent remoteTorrent)
     {
     };
 
-    public void resumeTorrent(RemoteTorrent remoteTorrent)
+    public void resumeTorrent(DefaultRemoteTorrent remoteTorrent)
     {
     };
 
-    public ArrayList<RemoteTorrent> getAllTorrents()
+    public ArrayList<DefaultRemoteTorrent> getAllTorrents()
     {
         return null;
     };

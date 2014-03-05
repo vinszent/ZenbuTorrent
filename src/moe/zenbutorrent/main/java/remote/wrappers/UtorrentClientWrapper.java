@@ -144,13 +144,15 @@ public class UtorrentClientWrapper implements ClientWrapper
     }        
 
     @Override
-    public void updateAllTorrents(ArrayList<RemoteTorrent> userList)
+    public void updateAllTorrents(ArrayList<RemoteTorrent> userList, Class<? extends RemoteTorrent> c)
     {
         HashMap root;
         ArrayList<ArrayList> torrents;
 
         root = (HashMap) JSONValue.parse(sendRequest("list=1"));
         torrents = (ArrayList<ArrayList>) root.get("torrents");
+
+        boolean exists = false;
 
         for(ArrayList al : torrents)
         {
@@ -215,7 +217,42 @@ public class UtorrentClientWrapper implements ClientWrapper
                     rt.setRatio((double) ratio / 1000.0); //Convert to promille
                     rt.setRemaining(remaining);
                     rt.setStatus(remoteTorrentStatus);
+
+                    exists = true;
                 }
+            }
+
+            if(!exists)
+            {
+                RemoteTorrent rt = null;
+
+                try
+                {
+                    rt = c.newInstance();
+                }
+                catch(InstantiationException e)
+                {
+                    Log.error("Cannot instantiate RemoteTorrent class that was passed", e);
+                }
+                catch(IllegalAccessException x)
+                {
+                    Log.error("No access to RemoteTorrent class that was passed", x);
+                }
+
+                rt.setTitle(title);
+                rt.setStringId(id);
+                rt.setFilepath(filepath);
+                rt.setSize(size);
+
+                rt.setProgress((double) progress / 1000.0); //Convert to promille
+                rt.setDownloaded(downloaded);
+                rt.setUploaded(uploaded);
+                rt.setDownloadSpeed(downloadSpeed);
+                rt.setUploadSpeed(uploadSpeed);
+                rt.setEta(eta);
+                rt.setRatio((double) ratio / 1000.0); //Convert to promille
+                rt.setRemaining(remaining);
+                rt.setStatus(remoteTorrentStatus);
             }
         }
     }        

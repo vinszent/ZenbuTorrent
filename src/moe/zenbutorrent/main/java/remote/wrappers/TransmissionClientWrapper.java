@@ -99,7 +99,7 @@ public class TransmissionClientWrapper implements ClientWrapper
         JSONObject data = new JSONObject();
         HashMap arguments = new HashMap();
 
-        arguments.put("id", remoteTorrent.getIntId());
+        arguments.put("id", remoteTorrent.getNumberId());
 
         data.put("arguments", arguments);
         data.put("method", "torrent-stop");
@@ -113,7 +113,7 @@ public class TransmissionClientWrapper implements ClientWrapper
         JSONObject data = new JSONObject();
         HashMap arguments = new HashMap();
 
-        arguments.put("id", remoteTorrent.getIntId());
+        arguments.put("id", remoteTorrent.getNumberId());
 
         data.put("arguments", arguments);
         data.put("method", "torrent-start");
@@ -218,13 +218,15 @@ public class TransmissionClientWrapper implements ClientWrapper
     };
 
     @Override
-    public void updateAllTorrents(ArrayList<RemoteTorrent> userList)
+    public void updateAllTorrents(ArrayList<RemoteTorrent> userList, Class<? extends RemoteTorrent> c)
     {
         JSONObject data = new JSONObject();
         HashMap arguments = new HashMap();
         ArrayList<String> fields = new ArrayList<>();
         HashMap root;
         ArrayList<HashMap> torrents;
+
+        boolean exists = false;
 
         fields.add("id");
         fields.add("status");
@@ -295,7 +297,7 @@ public class TransmissionClientWrapper implements ClientWrapper
 
             for(RemoteTorrent rt : userList)
             {
-                if(rt.getIntId() == id)
+                if(rt.getNumberId().longValue() == id)
                 {
                     rt.setProgress(progress.doubleValue());
                     rt.setDownloaded(downloaded);
@@ -307,6 +309,39 @@ public class TransmissionClientWrapper implements ClientWrapper
                     rt.setRemaining(remaining);
                     rt.setStatus(remoteTorrentStatus);
                 }
+            }
+
+            if(!exists)
+            {
+                RemoteTorrent rt = null;
+
+                try
+                {
+                    rt = c.newInstance();
+                }
+                catch(InstantiationException e)
+                {
+                    Log.error("Cannot instantiate RemoteTorrent class that was passed", e);
+                }
+                catch(IllegalAccessException x)
+                {
+                    Log.error("No access to RemoteTorrent class that was passed", x);
+                }
+
+                rt.setTitle(title);
+                rt.setNumberId(id);
+                rt.setFilepath(filepath);
+                rt.setSize(size);
+
+                rt.setProgress(progress.doubleValue());
+                rt.setDownloaded(downloaded);
+                rt.setUploaded(uploaded);
+                rt.setDownloadSpeed(downloadSpeed);
+                rt.setUploadSpeed(uploadSpeed);
+                rt.setEta(eta);
+                rt.setRatio(ratio.doubleValue());
+                rt.setRemaining(remaining);
+                rt.setStatus(remoteTorrentStatus);
             }
         }
     };

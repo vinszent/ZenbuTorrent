@@ -5,8 +5,8 @@ public interface RemoteTorrent
     public String getStringId();
     public void setStringId(String infoHash);
 
-    public int getIntId();
-    public void setIntId(int intId);
+    public Number getNumberId();
+    public void setNumberId(Number numberId);
 
     public String getTitle();
     public void setTitle(String title);
