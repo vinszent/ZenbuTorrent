@@ -18,5 +18,5 @@ public interface ClientWrapper
 
     public ArrayList<DefaultRemoteTorrent> getAllTorrents();
 
-    public void updateAllTorrents(ArrayList<Class<? extends RemoteTorrent>> torrents);
+    public void updateAllTorrents(ArrayList<RemoteTorrent> torrents);
 }
