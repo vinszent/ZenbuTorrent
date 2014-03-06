@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -245,7 +246,7 @@ public class TransmissionClientWrapper implements ClientWrapper
         }
 
         return returned;
-    };
+    }
 
     @Override
     public void updateAllTorrents(List<RemoteTorrent> userList, Class<? extends RemoteTorrent> c)
@@ -255,6 +256,8 @@ public class TransmissionClientWrapper implements ClientWrapper
         ArrayList<String> fields = new ArrayList<>();
         HashMap root;
         ArrayList<HashMap> torrents;
+
+        ArrayList<RemoteTorrent> temp = new ArrayList<>(userList);
 
         boolean exists = false;
 
@@ -341,6 +344,8 @@ public class TransmissionClientWrapper implements ClientWrapper
                     rt.setRemaining(remaining);
                     rt.setStatus(remoteTorrentStatus);
 
+                    temp.remove(rt);
+
                     exists = true;
                 }
             }
@@ -379,6 +384,11 @@ public class TransmissionClientWrapper implements ClientWrapper
 
                 userList.add(rt);
             }
+        }
+
+        for(RemoteTorrent rt : temp)
+        {
+            userList.remove(rt);
         }
     };
 

@@ -10,7 +10,9 @@ import java.net.URL;
 
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -170,6 +172,8 @@ public class UtorrentClientWrapper implements ClientWrapper
         root = (HashMap) JSONValue.parse(sendRequest("list=1"));
         torrents = (ArrayList<ArrayList>) root.get("torrents");
 
+        ArrayList<RemoteTorrent> temp = new ArrayList<>(userList);
+
         boolean exists = false;
 
         for(ArrayList al : torrents)
@@ -238,6 +242,8 @@ public class UtorrentClientWrapper implements ClientWrapper
                     rt.setRemaining(remaining);
                     rt.setStatus(remoteTorrentStatus);
 
+                    temp.remove(rt);
+
                     exists = true;
                 }
             }
@@ -276,6 +282,12 @@ public class UtorrentClientWrapper implements ClientWrapper
 
                 userList.add(rt);
             }
+
+        }
+
+        for(RemoteTorrent rt : temp)
+        {
+            userList.remove(rt);
         }
     }        
 
