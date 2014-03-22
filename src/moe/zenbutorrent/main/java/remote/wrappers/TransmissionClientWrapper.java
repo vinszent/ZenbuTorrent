@@ -8,13 +8,14 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
 import javax.xml.bind.DatatypeConverter;
 
 import moe.zenbutorrent.main.java.logging.Log;
+import moe.zenbutorrent.main.java.remote.exceptions.RemoteTorrentConnectionException;
+import moe.zenbutorrent.main.java.remote.exceptions.RemoteTorrentUnauthorizedException;
 import moe.zenbutorrent.main.java.remote.torrent.DefaultRemoteTorrent;
 import moe.zenbutorrent.main.java.remote.torrent.RemoteTorrent;
 import moe.zenbutorrent.main.java.remote.torrent.RemoteTorrentStatus;
@@ -54,7 +55,7 @@ public class TransmissionClientWrapper implements ClientWrapper
 
     //Implemented methods
     @Override
-    public void addTorrent(String url)
+    public void addTorrent(String url) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
     {
         JSONObject data = new JSONObject();
         HashMap arguments = new HashMap();
@@ -75,7 +76,7 @@ public class TransmissionClientWrapper implements ClientWrapper
     };
 
     @Override
-    public void addTorrent(File file)
+    public void addTorrent(File file) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
     {
         JSONObject data = new JSONObject();
         HashMap arguments = new HashMap();
@@ -96,7 +97,7 @@ public class TransmissionClientWrapper implements ClientWrapper
     };
 
     @Override
-    public void pauseTorrent(RemoteTorrent remoteTorrent)
+    public void pauseTorrent(RemoteTorrent remoteTorrent) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
     {
         JSONObject data = new JSONObject();
         HashMap arguments = new HashMap();
@@ -110,7 +111,7 @@ public class TransmissionClientWrapper implements ClientWrapper
     };
 
     @Override
-    public void resumeTorrent(RemoteTorrent remoteTorrent)
+    public void resumeTorrent(RemoteTorrent remoteTorrent) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
     {
         JSONObject data = new JSONObject();
         HashMap arguments = new HashMap();
@@ -124,7 +125,7 @@ public class TransmissionClientWrapper implements ClientWrapper
     };
 
     @Override
-    public void deleteTorrent(RemoteTorrent remoteTorrent)
+    public void deleteTorrent(RemoteTorrent remoteTorrent) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
     {
         JSONObject data = new JSONObject();
         HashMap arguments = new HashMap();
@@ -138,7 +139,7 @@ public class TransmissionClientWrapper implements ClientWrapper
     }        
 
     @Override
-    public void deleteTorrentAndData(RemoteTorrent remoteTorrent)
+    public void deleteTorrentAndData(RemoteTorrent remoteTorrent) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
     {
         JSONObject data = new JSONObject();
         HashMap arguments = new HashMap();
@@ -153,7 +154,7 @@ public class TransmissionClientWrapper implements ClientWrapper
     }        
 
     @Override
-    public List<DefaultRemoteTorrent> getAllTorrents()
+    public List<DefaultRemoteTorrent> getAllTorrents() throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
     {
         JSONObject data = new JSONObject();
         HashMap arguments = new HashMap();
@@ -249,7 +250,7 @@ public class TransmissionClientWrapper implements ClientWrapper
     }
 
     @Override
-    public void updateAllTorrents(List<RemoteTorrent> userList, Class<? extends RemoteTorrent> c)
+    public void updateAllTorrents(List<RemoteTorrent> userList, Class<? extends RemoteTorrent> c) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
     {
         JSONObject data = new JSONObject();
         HashMap arguments = new HashMap();
@@ -393,13 +394,13 @@ public class TransmissionClientWrapper implements ClientWrapper
     };
 
     //Class specific methods
-    private String sendRequest(JSONObject data)
+    private String sendRequest(JSONObject data) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
     {
         URL apiUrl;
         HttpURLConnection conn = null;
         String returned = null;
 
-        int responseCode;
+        int responseCode = -1;
         BufferedReader in;
         String line;
         StringBuilder response = new StringBuilder();
@@ -413,6 +414,7 @@ public class TransmissionClientWrapper implements ClientWrapper
             apiUrl = new URL("http://127.0.0.1:9090/transmission/rpc");
 
             conn = (HttpURLConnection) apiUrl.openConnection();
+            conn.setConnectTimeout(1000);
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Authorization", "Basic " + basicAuth);
             conn.setRequestProperty("X-Transmission-Session-Id", authToken);
@@ -444,52 +446,72 @@ public class TransmissionClientWrapper implements ClientWrapper
                     break;
                 case 401:
                     Log.error("Unauthorized to acess Transmission");
-                    break;
+                    throw new RemoteTorrentUnauthorizedException();
                 default:
                     Log.error("Error contacting Transmission: " + response.toString());
-                    break;
+                    throw new RemoteTorrentConnectionException();
             }
+        }
+        catch(RemoteTorrentUnauthorizedException x)
+        {
+            throw new RemoteTorrentUnauthorizedException();
         }
         catch(Exception e)
         {
             Log.error("Could not send request to Transmission", e);
-            return null;
+            switch(responseCode)
+            {
+                case 401:
+                    Log.error("Unauthorized to acess Utorrent API");
+                    throw new RemoteTorrentUnauthorizedException();
+                default:
+                    Log.error("Error contacting uTorrent API: " + response.toString());
+                    throw new RemoteTorrentConnectionException();
+            }
         }
 
         return returned;
     }
 
-    private void getAuthToken()
+    private void getAuthToken() throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
     {
         URL apiUrl;
         HttpURLConnection conn = null;
+        int responseCode = -1;
 
         try
         {
-            apiUrl = new URL("http://127.0.0.1:9090/transmission/rpc");
+            apiUrl = new URL(API_URL);
 
             conn = (HttpURLConnection) apiUrl.openConnection();
+            conn.setConnectTimeout(1000);
+            conn.setReadTimeout(1000);
             conn.setRequestMethod("GET");
+            responseCode = conn.getResponseCode();
             conn.getInputStream();
         }
         catch(IOException e)
         {
-            try
+            if(responseCode == 409)
             {
-                if(conn.getResponseCode() == 409)
-                {
-                    authToken = conn.getHeaderField("X-Transmission-Session-Id");
-                    Log.debug("Got auth token: " + authToken + " from Transmission");
-                }
-                else
-                {
-                    Log.error("Could not get Transmission auth token", e);
-                }
+                authToken = conn.getHeaderField("X-Transmission-Session-Id");
+                Log.debug("Got auth token: " + authToken + " from Transmission");
             }
-            catch(Exception x)
+            else if(responseCode == 401)
             {
-                Log.error("Could not get Transmission auth token", x);
+                Log.error("Unauthorized to acess Transmission");
+                throw new RemoteTorrentUnauthorizedException();
+            }
+            else
+            {
+                Log.error("Could not get Transmission auth token", e);
+                throw new RemoteTorrentConnectionException();
             }
         }
+    }        
+
+    public String getName()
+    {
+        return "Transmission";
     }        
 }

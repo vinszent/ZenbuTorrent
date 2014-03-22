@@ -4,21 +4,21 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.BitSet;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
 import javax.xml.bind.DatatypeConverter;
 
 import moe.zenbutorrent.main.java.logging.Log;
+import moe.zenbutorrent.main.java.remote.exceptions.RemoteTorrentConnectionException;
+import moe.zenbutorrent.main.java.remote.exceptions.RemoteTorrentUnauthorizedException;
 import moe.zenbutorrent.main.java.remote.torrent.DefaultRemoteTorrent;
 import moe.zenbutorrent.main.java.remote.torrent.RemoteTorrent;
 import moe.zenbutorrent.main.java.remote.torrent.RemoteTorrentStatus;
@@ -46,47 +46,47 @@ public class UtorrentClientWrapper implements ClientWrapper
 
     //Implemented methods
     @Override
-    public void addTorrent(String url)
+    public void addTorrent(String url) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
     {
         url = URLEncoder.encode(url);
         sendRequest("action=add-url&s=" + url);
     }
 
-    public void addTorrent(File file)
+    public void addTorrent(File file) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
     {
         uploadFile(file);
     }        
 
     @Override
-    public void pauseTorrent(RemoteTorrent remoteTorrent)
+    public void pauseTorrent(RemoteTorrent remoteTorrent) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
     {
         sendRequest("action=pause&hash=" + remoteTorrent.getStringId());
         Log.info("Paused torrent: " + remoteTorrent.getTitle() + " on uTorrent");
     }
 
     @Override
-    public void resumeTorrent(RemoteTorrent remoteTorrent)
+    public void resumeTorrent(RemoteTorrent remoteTorrent) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
     {
         sendRequest("action=unpause&hash=" + remoteTorrent.getStringId());
         Log.info("Resumed torrent: " + remoteTorrent.getTitle() + " on uTorrent");
     }
 
     @Override
-    public void deleteTorrent(RemoteTorrent remoteTorrent)
+    public void deleteTorrent(RemoteTorrent remoteTorrent) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
     {
         sendRequest("action=remove&hash=" + remoteTorrent.getStringId());
         Log.info("Deleted torrent: " + remoteTorrent.getTitle() + " on uTorrent");
     }        
 
     @Override
-    public void deleteTorrentAndData(RemoteTorrent remoteTorrent)
+    public void deleteTorrentAndData(RemoteTorrent remoteTorrent) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
     {
         sendRequest("action=removedata&hash=" + remoteTorrent.getStringId());
         Log.info("Deleted torrent and data: " + remoteTorrent.getTitle() + " on uTorrent");
     }        
 
     @Override
-    public List<DefaultRemoteTorrent> getAllTorrents()
+    public List<DefaultRemoteTorrent> getAllTorrents() throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
     {
         ArrayList<DefaultRemoteTorrent> returned = new ArrayList<>();
 
@@ -164,7 +164,7 @@ public class UtorrentClientWrapper implements ClientWrapper
     }        
 
     @Override
-    public void updateAllTorrents(List<RemoteTorrent> userList, Class<? extends RemoteTorrent> c)
+    public void updateAllTorrents(List<RemoteTorrent> userList, Class<? extends RemoteTorrent> c) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
     {
         HashMap root;
         ArrayList<ArrayList> torrents;
@@ -292,7 +292,7 @@ public class UtorrentClientWrapper implements ClientWrapper
     }        
 
     //Class specific methods
-    private void uploadFile(File file)
+    private void uploadFile(File file) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
     {
         String authToken = getAuthToken();
         URL apiUrl;
@@ -364,19 +364,20 @@ public class UtorrentClientWrapper implements ClientWrapper
                     break;
                 case 401:
                     Log.error("Unauthorized to acess Utorrent API");
-                    break;
+                    throw new RemoteTorrentUnauthorizedException();
                 default:
                     Log.error("Error contacting uTorrent API: " + response.toString());
-                    break;
+                    throw new RemoteTorrentConnectionException();
             }
         }
-        catch(Exception e)
+        catch(IOException e)
         {
             Log.error("Could not get uTorrent auth token", e);
+            throw new RemoteTorrentConnectionException();
         }
     }        
 
-    private String sendRequest(String arg)
+    private String sendRequest(String arg) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
     {
         String authToken = getAuthToken();
         URL apiUrl;
@@ -393,6 +394,7 @@ public class UtorrentClientWrapper implements ClientWrapper
             apiUrl = new URL(API_URL + "?token=" + authToken + "&" + arg);
 
             conn = (HttpURLConnection) apiUrl.openConnection();
+            conn.setConnectTimeout(1000);
             conn.setRequestMethod("GET");
             conn.setRequestProperty("Authorization", "Basic " + basicAuth);
             conn.setRequestProperty("Cookie", cookie);
@@ -415,22 +417,22 @@ public class UtorrentClientWrapper implements ClientWrapper
                     break;
                 case 401:
                     Log.error("Unauthorized to acess Utorrent API");
-                    break;
+                    throw new RemoteTorrentUnauthorizedException();
                 default:
                     Log.error("Error contacting uTorrent API: " + response.toString());
-                    break;
+                    throw new RemoteTorrentConnectionException();
             }
         }
-        catch(Exception e)
+        catch(IOException e)
         {
             Log.error("Could not send request to uTorrent", e);
-            return null;
+            throw new RemoteTorrentConnectionException();
         }
 
         return returned;
     }        
 
-    private String getAuthToken()
+    private String getAuthToken() throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
     {
        String authToken = null;
        URL apiUrl;
@@ -446,6 +448,7 @@ public class UtorrentClientWrapper implements ClientWrapper
            apiUrl = new URL(API_URL + "token.html");
 
            conn = (HttpURLConnection) apiUrl.openConnection();
+           conn.setConnectTimeout(1000);
            conn.setRequestMethod("GET");
            conn.setRequestProperty("Authorization", "Basic " + basicAuth);
 
@@ -463,8 +466,15 @@ public class UtorrentClientWrapper implements ClientWrapper
        }
        catch(Exception e)
        {
-           Log.error("Could not get uTorrent auth token", e);
-           return null;
+           switch(responseCode)
+           {
+               case 401:
+                   Log.error("Unauthorized to acess Utorrent API");
+                   throw new RemoteTorrentUnauthorizedException();
+               default:
+                   Log.error("Error contacting uTorrent API: " + response.toString());
+                   throw new RemoteTorrentConnectionException();
+           }
        }
 
        switch(responseCode)
@@ -476,13 +486,18 @@ public class UtorrentClientWrapper implements ClientWrapper
                break;
            case 401:
                Log.error("Unauthorized to acess Utorrent API");
-               break;
+               throw new RemoteTorrentUnauthorizedException();
            default:
                Log.error("Error contacting uTorrent API: " + response.toString());
-               break;
+               throw new RemoteTorrentConnectionException();
        }
 
        Log.debug("Got uTorrent auth token: " + authToken);
        return authToken;
+    }        
+
+    public String getName()
+    {
+        return "uTorrent";
     }        
 }
