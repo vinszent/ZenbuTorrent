@@ -19,6 +19,7 @@ import moe.zenbutorrent.main.java.remote.exceptions.RemoteTorrentUnauthorizedExc
 import moe.zenbutorrent.main.java.remote.torrent.DefaultRemoteTorrent;
 import moe.zenbutorrent.main.java.remote.torrent.RemoteTorrent;
 import moe.zenbutorrent.main.java.remote.torrent.RemoteTorrentStatus;
+import moe.zenbutorrent.main.java.remote.torrent.file.RemoteTorrentFile;
 
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -392,6 +393,62 @@ public class TransmissionClientWrapper implements ClientWrapper
             userList.remove(rt);
         }
     };
+
+    @Override
+    public List<RemoteTorrentFile> getFilesForTorrent(RemoteTorrent remoteTorrent, Class<? extends RemoteTorrentFile> c) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
+    {
+        ArrayList<RemoteTorrentFile> returned = new ArrayList<>();
+        
+        HashMap root;
+        ArrayList<HashMap> torrents;
+
+        JSONObject data = new JSONObject();
+        HashMap arguments = new HashMap();
+        ArrayList<String> fields = new ArrayList<>();
+
+        fields.add("files");
+
+        arguments.put("id", remoteTorrent.getNumberId());
+        arguments.put("fields", fields);
+
+        data.put("arguments", arguments);
+        data.put("method", "torrent-get");
+
+        root = (HashMap) JSONValue.parse(sendRequest(data));
+        torrents = (ArrayList<HashMap>) ((HashMap) root.get("arguments")).get("torrents");
+
+        for(HashMap hm : torrents)
+        {
+            ArrayList<HashMap> files = (ArrayList<HashMap>) hm.get("files");
+
+
+            for(HashMap h : files)
+            {
+                RemoteTorrentFile rtf = null;
+
+                String filename = (String) h.get("name");
+                long filesize = (long) h.get("length");
+                long downloaded = (long) h.get("bytesCompleted");
+
+                try
+                {
+                    rtf = c.newInstance(); 
+                }
+                catch(Exception e)
+                {
+                    Log.error("Could not instantiate supplied remote torrent file class", e);
+                }
+
+                rtf.setFileName(filename);
+                rtf.setFileSize(filesize);
+                rtf.setDownloaded(downloaded);
+
+                returned.add(rtf);
+            }
+        }
+
+        return returned;
+    }
 
     //Class specific methods
     private String sendRequest(JSONObject data) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
