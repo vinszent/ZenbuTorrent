@@ -544,6 +544,7 @@ public class TransmissionClientWrapper implements ClientWrapper
             conn.setConnectTimeout(1000);
             conn.setReadTimeout(1000);
             conn.setRequestMethod("GET");
+            conn.setRequestProperty("Authorization", "Basic " + basicAuth);
             responseCode = conn.getResponseCode();
             conn.getInputStream();
         }
