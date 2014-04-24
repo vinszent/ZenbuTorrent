@@ -26,6 +26,8 @@ public interface ClientWrapper
 
     public void updateAllTorrents(List<RemoteTorrent> torrents, Class<? extends RemoteTorrent> c) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException;
 
+    public void updateAllTorrents(List<RemoteTorrent> torrents, Class<? extends RemoteTorrent> c, List<String> titles) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException;
+
     public List<? extends RemoteTorrentFile> getFilesForTorrent(RemoteTorrent remoteTorrent, Class<? extends RemoteTorrentFile> c) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException;
 
     public String getName();

@@ -395,6 +395,150 @@ public class TransmissionClientWrapper implements ClientWrapper
     };
 
     @Override
+    public void updateAllTorrents(List<RemoteTorrent> userList, Class<? extends RemoteTorrent> c, List<String> titles) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
+    {
+        JSONObject data = new JSONObject();
+        HashMap arguments = new HashMap();
+        ArrayList<String> fields = new ArrayList<>();
+        HashMap root;
+        ArrayList<HashMap> torrents;
+
+        ArrayList<RemoteTorrent> temp = new ArrayList<>(userList);
+
+        boolean exists = false;
+
+        fields.add("id");
+        fields.add("status");
+        fields.add("name");
+        fields.add("percentDone");
+        fields.add("downloadedEver");
+        fields.add("uploadedEver");
+        fields.add("uploadRatio");
+        fields.add("sizeWhenDone");
+        fields.add("leftUntilDone");
+        fields.add("rateDownload");
+        fields.add("rateUpload");
+        fields.add("eta");
+        fields.add("downloadDir");
+
+        arguments.put("fields", fields);
+
+        data.put("arguments", arguments);
+        data.put("method", "torrent-get");
+
+        root = (HashMap) JSONValue.parse(sendRequest(data));
+        torrents = (ArrayList<HashMap>) ((HashMap) root.get("arguments")).get("torrents");
+
+        for(HashMap hm : torrents)
+        {
+            long id = (long) hm.get("id");
+            long status = (long) hm.get("status");
+            String title = (String) hm.get("name");
+            String filepath = (String) hm.get("downloadDir");
+            long size = (long) hm.get("sizeWhenDone");
+            Number progress = (Number) hm.get("percentDone");
+            long downloaded = (long) hm.get("downloadedEver");
+            long uploaded = (long) hm.get("uploadedEver");
+            Number ratio = (Number) hm.get("uploadRatio");
+            long uploadSpeed = (long) hm.get("rateUpload");
+            long downloadSpeed = (long) hm.get("rateDownload");
+            long eta = (long) hm.get("eta");
+            long remaining = (long) hm.get("leftUntilDone");
+
+            exists = false;
+
+            RemoteTorrentStatus remoteTorrentStatus = null;
+            switch((int) status)
+            {
+                case 0:
+                        remoteTorrentStatus = RemoteTorrentStatus.PAUSED;
+                        break;
+                case 1:
+                        remoteTorrentStatus = RemoteTorrentStatus.WAITING;
+                        break;
+                case 2:
+                        remoteTorrentStatus = RemoteTorrentStatus.CHECKING;
+                        break;
+                case 3:
+                        remoteTorrentStatus = RemoteTorrentStatus.QUEUED;
+                        break;
+                case 4:
+                        remoteTorrentStatus = RemoteTorrentStatus.DOWNLOADING;
+                        break;
+                case 5:
+                        remoteTorrentStatus = RemoteTorrentStatus.QUEUED;
+                        break;
+                case 6:
+                        remoteTorrentStatus = RemoteTorrentStatus.SEEDING;
+                        break;
+                default:
+                        remoteTorrentStatus = RemoteTorrentStatus.UNKOWN;
+                        break;
+            }
+
+            for(RemoteTorrent rt : userList)
+            {
+                if(rt.getNumberId().longValue() == id)
+                {
+                    rt.setProgress(progress.doubleValue());
+                    rt.setDownloaded(downloaded);
+                    rt.setUploaded(uploaded);
+                    rt.setDownloadSpeed(downloadSpeed);
+                    rt.setUploadSpeed(uploadSpeed);
+                    rt.setEta(eta);
+                    rt.setRatio(ratio.doubleValue());
+                    rt.setRemaining(remaining);
+                    rt.setStatus(remoteTorrentStatus);
+
+                    temp.remove(rt);
+
+                    exists = true;
+                }
+            }
+
+            if(!exists && titles.contains(title))
+            {
+                RemoteTorrent rt = null;
+
+                try
+                {
+                    rt = c.newInstance();
+                }
+                catch(InstantiationException e)
+                {
+                    Log.error("Cannot instantiate RemoteTorrent class that was passed", e);
+                }
+                catch(IllegalAccessException x)
+                {
+                    Log.error("No access to RemoteTorrent class that was passed", x);
+                }
+
+                rt.setTitle(title);
+                rt.setNumberId(id);
+                rt.setFilepath(filepath);
+                rt.setSize(size);
+
+                rt.setProgress(progress.doubleValue());
+                rt.setDownloaded(downloaded);
+                rt.setUploaded(uploaded);
+                rt.setDownloadSpeed(downloadSpeed);
+                rt.setUploadSpeed(uploadSpeed);
+                rt.setEta(eta);
+                rt.setRatio(ratio.doubleValue());
+                rt.setRemaining(remaining);
+                rt.setStatus(remoteTorrentStatus);
+
+                userList.add(rt);
+            }
+        }
+
+        for(RemoteTorrent rt : temp)
+        {
+            userList.remove(rt);
+        }
+    };
+
+    @Override
     public List<RemoteTorrentFile> getFilesForTorrent(RemoteTorrent remoteTorrent, Class<? extends RemoteTorrentFile> c) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
     {
         ArrayList<RemoteTorrentFile> returned = new ArrayList<>();
