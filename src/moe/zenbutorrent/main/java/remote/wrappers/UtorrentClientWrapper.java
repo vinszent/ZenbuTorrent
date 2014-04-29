@@ -87,9 +87,9 @@ public class UtorrentClientWrapper implements ClientWrapper
     }        
 
     @Override
-    public List<DefaultRemoteTorrent> getAllTorrents() throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
+    public ArrayList<RemoteTorrent> getAllTorrents() throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
     {
-        ArrayList<DefaultRemoteTorrent> returned = new ArrayList<>();
+        ArrayList<RemoteTorrent> returned = new ArrayList<>();
 
         HashMap root;
         ArrayList<ArrayList> torrents;
@@ -283,7 +283,6 @@ public class UtorrentClientWrapper implements ClientWrapper
 
                 userList.add(rt);
             }
-
         }
 
         for(RemoteTorrent rt : temp)
@@ -461,7 +460,7 @@ public class UtorrentClientWrapper implements ClientWrapper
     //Class specific methods
     private void uploadFile(File file) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
     {
-        String authToken = getAuthToken();
+        String authToken;
         URL apiUrl;
         HttpURLConnection conn;
 
@@ -481,6 +480,7 @@ public class UtorrentClientWrapper implements ClientWrapper
         
         try
         {
+            authToken = getAuthToken();
             apiUrl = new URL(API_URL + "?token=" + authToken + "&action=add-file");
             conn = (HttpURLConnection) apiUrl.openConnection();
 
@@ -527,7 +527,7 @@ public class UtorrentClientWrapper implements ClientWrapper
                 case 200:
                 case 201:
                 case 202:
-                    Log.info("Uploaded file: " + file.getName() + "to uTorrent");
+                    Log.info("Sent file: " + file.getName() + "to uTorrent");
                     break;
                 case 401:
                     Log.error("Unauthorized to acess Utorrent API");
@@ -537,16 +537,20 @@ public class UtorrentClientWrapper implements ClientWrapper
                     throw new RemoteTorrentConnectionException();
             }
         }
-        catch(IOException e)
+        catch(RemoteTorrentConnectionException | RemoteTorrentUnauthorizedException x)
         {
-            Log.error("Could not get uTorrent auth token", e);
+            throw x;
+        }
+        catch(Exception e)
+        {
+            Log.error("Could not send file to uTorrent");
             throw new RemoteTorrentConnectionException();
         }
     }        
 
     private String sendRequest(String arg) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
     {
-        String authToken = getAuthToken();
+        String authToken;
         URL apiUrl;
         HttpURLConnection conn;
 
@@ -558,6 +562,7 @@ public class UtorrentClientWrapper implements ClientWrapper
         
         try
         {
+            authToken = getAuthToken();
             apiUrl = new URL(API_URL + "?token=" + authToken + "&" + arg);
 
             conn = (HttpURLConnection) apiUrl.openConnection();
@@ -590,10 +595,14 @@ public class UtorrentClientWrapper implements ClientWrapper
                     throw new RemoteTorrentConnectionException();
             }
         }
+        catch(RemoteTorrentConnectionException | RemoteTorrentUnauthorizedException x)
+        {
+            throw x;
+        }
         catch(IOException e)
         {
-            Log.error("Could not send request to uTorrent", e);
-            throw new RemoteTorrentConnectionException();
+            Log.error("Could not send request to uTorrent");
+            throw new RemoteTorrentConnectionException(e);
         }
 
         return returned;
@@ -666,5 +675,11 @@ public class UtorrentClientWrapper implements ClientWrapper
     public String getName()
     {
         return "uTorrent";
+    }        
+
+    @Override
+    public String toString()
+    {
+        return getName(); 
     }        
 }

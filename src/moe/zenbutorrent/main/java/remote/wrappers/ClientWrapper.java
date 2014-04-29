@@ -1,6 +1,7 @@
 package moe.zenbutorrent.main.java.remote.wrappers;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import moe.zenbutorrent.main.java.remote.exceptions.RemoteTorrentConnectionException;
@@ -22,7 +23,7 @@ public interface ClientWrapper
 
     public void deleteTorrentAndData(RemoteTorrent remoteTorrent) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException;
 
-    public List<? extends RemoteTorrent> getAllTorrents() throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException;
+    public ArrayList<RemoteTorrent> getAllTorrents() throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException;
 
     public void updateAllTorrents(List<RemoteTorrent> torrents, Class<? extends RemoteTorrent> c) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException;
 

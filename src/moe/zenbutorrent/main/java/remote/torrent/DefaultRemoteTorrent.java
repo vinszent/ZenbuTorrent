@@ -3,8 +3,8 @@ package moe.zenbutorrent.main.java.remote.torrent;
 
 public class DefaultRemoteTorrent implements RemoteTorrent
 {
-    private String stringId = "";
-    private Number numberId = -1;
+    private String stringId = null;
+    private Number numberId = null;
     private String title;
     private String filepath;
     private RemoteTorrentStatus status;
@@ -33,6 +33,11 @@ public class DefaultRemoteTorrent implements RemoteTorrent
         this.filepath = filepath;
         this.size = size;
     }
+
+    public DefaultRemoteTorrent()
+    {
+        // Do nothing 
+    }        
 
     public String getStringId()
     {
@@ -183,7 +188,7 @@ public class DefaultRemoteTorrent implements RemoteTorrent
         {
             DefaultRemoteTorrent rt = (DefaultRemoteTorrent) object;
 
-            if((rt.getNumberId() != -1 && rt.getNumberId() == this.getNumberId()) || (!rt.getStringId().isEmpty() && rt.getStringId() == this.getStringId()))
+            if((rt.getNumberId() != null && rt.getNumberId() == this.getNumberId()) || (rt.getStringId() != null && rt.getStringId() == this.getStringId()))
             {
                 same = true;
             }

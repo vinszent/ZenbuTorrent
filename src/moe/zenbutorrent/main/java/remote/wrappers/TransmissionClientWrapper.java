@@ -155,7 +155,7 @@ public class TransmissionClientWrapper implements ClientWrapper
     }        
 
     @Override
-    public List<DefaultRemoteTorrent> getAllTorrents() throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
+    public ArrayList<RemoteTorrent> getAllTorrents() throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
     {
         JSONObject data = new JSONObject();
         HashMap arguments = new HashMap();
@@ -163,7 +163,7 @@ public class TransmissionClientWrapper implements ClientWrapper
         HashMap root;
         ArrayList<HashMap> torrents;
 
-        ArrayList<DefaultRemoteTorrent> returned = new ArrayList<>();
+        ArrayList<RemoteTorrent> returned = new ArrayList<>();
 
         fields.add("id");
         fields.add("status");
@@ -565,7 +565,6 @@ public class TransmissionClientWrapper implements ClientWrapper
         {
             ArrayList<HashMap> files = (ArrayList<HashMap>) hm.get("files");
 
-
             for(HashMap h : files)
             {
                 RemoteTorrentFile rtf = null;
@@ -653,21 +652,20 @@ public class TransmissionClientWrapper implements ClientWrapper
                     throw new RemoteTorrentConnectionException();
             }
         }
-        catch(RemoteTorrentUnauthorizedException x)
+        catch(RemoteTorrentUnauthorizedException | RemoteTorrentConnectionException x)
         {
-            throw new RemoteTorrentUnauthorizedException();
+            throw x;
         }
         catch(Exception e)
         {
-            Log.error("Could not send request to Transmission", e);
             switch(responseCode)
             {
                 case 401:
-                    Log.error("Unauthorized to acess Utorrent API");
+                    Log.error("Unauthorized to access Transmission");
                     throw new RemoteTorrentUnauthorizedException();
                 default:
-                    Log.error("Error contacting uTorrent API: " + response.toString());
-                    throw new RemoteTorrentConnectionException();
+                    Log.error("Error contacting Transmission: " + response.toString());
+                    throw new RemoteTorrentConnectionException(e);
             }
         }
 
@@ -706,7 +704,7 @@ public class TransmissionClientWrapper implements ClientWrapper
             }
             else
             {
-                Log.error("Could not get Transmission auth token", e);
+                Log.error("Could not get Transmission auth token: " + responseCode);
                 throw new RemoteTorrentConnectionException();
             }
         }
@@ -715,5 +713,11 @@ public class TransmissionClientWrapper implements ClientWrapper
     public String getName()
     {
         return "Transmission";
+    }        
+
+    @Override
+    public String toString()
+    {
+        return getName(); 
     }        
 }
