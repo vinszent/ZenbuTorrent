@@ -18,3 +18,14 @@ Remote
 ------------
 The remote part is a connector that wraps many other popular Bitorrent client APIs. The remote library can be used to control clients such
 as uTorrent or Transmission.
+
+Todo
+---------
+* Add wrappers for other torrent clients (if you want to help out, please write a wrapper, just implement the ClientWrapper interface)
+    * ~~uTorrent~~
+    * ~~Transmission~~
+    * Deluge - (http://deluge-torrent.org/docs/1.2/core/rpc.html)
+    * QBittorrent - (https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-Documentation)
+    * Vuze - (http://wiki.vuze.com/w/XML_over_HTTP)
+    * rTorrent - (http://libtorrent.rakshasa.no/wiki/RTorrentXMLRPCGuide)
+* One day in the distant future, finish the local part
