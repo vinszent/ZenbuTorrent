@@ -15,6 +15,12 @@ public interface ClientWrapper
 
     public void addTorrent(File file) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException;
 
+    public void addTorrent(String url, String path) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException;
+
+    public void addTorrent(File file, File path) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException;
+
+    public void addTorrent(File file, String path) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException;
+
     public void pauseTorrent(RemoteTorrent remoteTorrent) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException;
 
     public void resumeTorrent(RemoteTorrent remoteTorrent) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException;
