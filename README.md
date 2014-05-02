@@ -24,7 +24,7 @@ Todo
 * Add wrappers for other torrent clients (if you want to help out, please write a wrapper, just implement the ClientWrapper interface)
     * ~~uTorrent~~
     * ~~Transmission~~
-    * Deluge - (http://deluge-torrent.org/docs/1.2/core/rpc.html)
+    * ~~Deluge~~
     * QBittorrent - (https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-Documentation)
     * Vuze - (http://wiki.vuze.com/w/XML_over_HTTP)
     * rTorrent - (http://libtorrent.rakshasa.no/wiki/RTorrentXMLRPCGuide)
