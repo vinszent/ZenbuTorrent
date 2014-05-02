@@ -37,17 +37,12 @@ public class TransmissionClientWrapper implements ClientWrapper
         //No auth
     }
 
-    public TransmissionClientWrapper(int port)
-    {
-        API_URL = "http://127.0.0.1:" + port + "/transmission/rpc";
-    }
-
     public TransmissionClientWrapper(String username, String password)
     {
         basicAuth = DatatypeConverter.printBase64Binary((username + ":" + password).getBytes());
     }
 
-    public TransmissionClientWrapper(String username, String password, int port)
+    public TransmissionClientWrapper(String username, String password, String ip, int port)
     {
         basicAuth = DatatypeConverter.printBase64Binary((username + ":" + password).getBytes());
 
@@ -96,6 +91,73 @@ public class TransmissionClientWrapper implements ClientWrapper
 
         sendRequest(data);
     };
+
+    @Override
+    public void addTorrent(String url, String path) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
+    {
+        JSONObject data = new JSONObject();
+        HashMap arguments = new HashMap();
+
+        try
+        {
+            arguments.put("filename", url);
+            arguments.put("download-dir", path);
+        }
+        catch(Exception e)
+        {
+            Log.error("Could not get filepath to torrent file", e);
+        }
+
+        data.put("arguments", arguments);
+        data.put("method", "torrent-add");
+
+        sendRequest(data);
+    };
+
+    @Override
+    public void addTorrent(File file, String path) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
+    {
+        JSONObject data = new JSONObject();
+        HashMap arguments = new HashMap();
+
+        try
+        {
+            arguments.put("filename", file.getCanonicalPath());
+            arguments.put("download-dir", path);
+        }
+        catch(Exception e)
+        {
+            Log.error("Could not get filepath to torrent file", e);
+        }
+
+        data.put("arguments", arguments);
+        data.put("method", "torrent-add");
+
+        sendRequest(data);
+    };
+
+    @Override
+    public void addTorrent(File file, File dir) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
+    {
+        JSONObject data = new JSONObject();
+        HashMap arguments = new HashMap();
+
+        try
+        {
+            arguments.put("filename", file.getCanonicalPath());
+            arguments.put("download-dir", dir.getCanonicalPath());
+        }
+        catch(Exception e)
+        {
+            Log.error("Could not get filepath to torrent file", e);
+        }
+
+        data.put("arguments", arguments);
+        data.put("method", "torrent-add");
+
+        sendRequest(data);
+    };
+
 
     @Override
     public void pauseTorrent(RemoteTorrent remoteTorrent) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
@@ -173,7 +235,6 @@ public class TransmissionClientWrapper implements ClientWrapper
         fields.add("uploadedEver");
         fields.add("uploadRatio");
         fields.add("sizeWhenDone");
-        fields.add("leftUntilDone");
         fields.add("rateDownload");
         fields.add("rateUpload");
         fields.add("eta");
@@ -201,34 +262,33 @@ public class TransmissionClientWrapper implements ClientWrapper
             long uploadSpeed = (long) hm.get("rateUpload");
             long downloadSpeed = (long) hm.get("rateDownload");
             long eta = (long) hm.get("eta");
-            long remaining = (long) hm.get("leftUntilDone");
 
-            RemoteTorrentStatus remoteTorrentStatus = null;
+            String remoteTorrentStatus = null;
             switch((int) status)
             {
                 case 0:
-                        remoteTorrentStatus = RemoteTorrentStatus.PAUSED;
+                        remoteTorrentStatus = RemoteTorrent.PAUSED;
                         break;
                 case 1:
-                        remoteTorrentStatus = RemoteTorrentStatus.WAITING;
+                        remoteTorrentStatus = RemoteTorrent.WAITING;
                         break;
                 case 2:
-                        remoteTorrentStatus = RemoteTorrentStatus.CHECKING;
+                        remoteTorrentStatus = RemoteTorrent.CHECKING;
                         break;
                 case 3:
-                        remoteTorrentStatus = RemoteTorrentStatus.QUEUED;
+                        remoteTorrentStatus = RemoteTorrent.QUEUED;
                         break;
                 case 4:
-                        remoteTorrentStatus = RemoteTorrentStatus.DOWNLOADING;
+                        remoteTorrentStatus = RemoteTorrent.DOWNLOADING;
                         break;
                 case 5:
-                        remoteTorrentStatus = RemoteTorrentStatus.QUEUED;
+                        remoteTorrentStatus = RemoteTorrent.QUEUED;
                         break;
                 case 6:
-                        remoteTorrentStatus = RemoteTorrentStatus.SEEDING;
+                        remoteTorrentStatus = RemoteTorrent.SEEDING;
                         break;
                 default:
-                        remoteTorrentStatus = RemoteTorrentStatus.UNKOWN;
+                        remoteTorrentStatus = RemoteTorrent.UNKOWN;
                         break;
             }
 
@@ -240,7 +300,6 @@ public class TransmissionClientWrapper implements ClientWrapper
             rt.setUploadSpeed(uploadSpeed);
             rt.setEta(eta);
             rt.setRatio(ratio.doubleValue()); //Convert to promille
-            rt.setRemaining(remaining);
             rt.setStatus(remoteTorrentStatus);
 
             returned.add(rt);
@@ -271,7 +330,6 @@ public class TransmissionClientWrapper implements ClientWrapper
         fields.add("uploadedEver");
         fields.add("uploadRatio");
         fields.add("sizeWhenDone");
-        fields.add("leftUntilDone");
         fields.add("rateDownload");
         fields.add("rateUpload");
         fields.add("eta");
@@ -290,7 +348,7 @@ public class TransmissionClientWrapper implements ClientWrapper
             long id = (long) hm.get("id");
             long status = (long) hm.get("status");
             String title = (String) hm.get("name");
-            String filepath = (String) hm.get("downloadDir");
+            String downloadDir = (String) hm.get("downloadDir");
             long size = (long) hm.get("sizeWhenDone");
             Number progress = (Number) hm.get("percentDone");
             long downloaded = (long) hm.get("downloadedEver");
@@ -299,36 +357,35 @@ public class TransmissionClientWrapper implements ClientWrapper
             long uploadSpeed = (long) hm.get("rateUpload");
             long downloadSpeed = (long) hm.get("rateDownload");
             long eta = (long) hm.get("eta");
-            long remaining = (long) hm.get("leftUntilDone");
 
             exists = false;
 
-            RemoteTorrentStatus remoteTorrentStatus = null;
+            String remoteTorrentStatus = null;
             switch((int) status)
             {
                 case 0:
-                        remoteTorrentStatus = RemoteTorrentStatus.PAUSED;
+                        remoteTorrentStatus = RemoteTorrent.PAUSED;
                         break;
                 case 1:
-                        remoteTorrentStatus = RemoteTorrentStatus.WAITING;
+                        remoteTorrentStatus = RemoteTorrent.WAITING;
                         break;
                 case 2:
-                        remoteTorrentStatus = RemoteTorrentStatus.CHECKING;
+                        remoteTorrentStatus = RemoteTorrent.CHECKING;
                         break;
                 case 3:
-                        remoteTorrentStatus = RemoteTorrentStatus.QUEUED;
+                        remoteTorrentStatus = RemoteTorrent.QUEUED;
                         break;
                 case 4:
-                        remoteTorrentStatus = RemoteTorrentStatus.DOWNLOADING;
+                        remoteTorrentStatus = RemoteTorrent.DOWNLOADING;
                         break;
                 case 5:
-                        remoteTorrentStatus = RemoteTorrentStatus.QUEUED;
+                        remoteTorrentStatus = RemoteTorrent.QUEUED;
                         break;
                 case 6:
-                        remoteTorrentStatus = RemoteTorrentStatus.SEEDING;
+                        remoteTorrentStatus = RemoteTorrent.SEEDING;
                         break;
                 default:
-                        remoteTorrentStatus = RemoteTorrentStatus.UNKOWN;
+                        remoteTorrentStatus = RemoteTorrent.UNKOWN;
                         break;
             }
 
@@ -343,7 +400,6 @@ public class TransmissionClientWrapper implements ClientWrapper
                     rt.setUploadSpeed(uploadSpeed);
                     rt.setEta(eta);
                     rt.setRatio(ratio.doubleValue());
-                    rt.setRemaining(remaining);
                     rt.setStatus(remoteTorrentStatus);
 
                     temp.remove(rt);
@@ -371,7 +427,7 @@ public class TransmissionClientWrapper implements ClientWrapper
 
                 rt.setTitle(title);
                 rt.setNumberId(id);
-                rt.setFilepath(filepath);
+                rt.setDownloadDirectory(downloadDir);
                 rt.setSize(size);
 
                 rt.setProgress(progress.doubleValue());
@@ -381,7 +437,6 @@ public class TransmissionClientWrapper implements ClientWrapper
                 rt.setUploadSpeed(uploadSpeed);
                 rt.setEta(eta);
                 rt.setRatio(ratio.doubleValue());
-                rt.setRemaining(remaining);
                 rt.setStatus(remoteTorrentStatus);
 
                 userList.add(rt);
@@ -415,7 +470,6 @@ public class TransmissionClientWrapper implements ClientWrapper
         fields.add("uploadedEver");
         fields.add("uploadRatio");
         fields.add("sizeWhenDone");
-        fields.add("leftUntilDone");
         fields.add("rateDownload");
         fields.add("rateUpload");
         fields.add("eta");
@@ -434,7 +488,7 @@ public class TransmissionClientWrapper implements ClientWrapper
             long id = (long) hm.get("id");
             long status = (long) hm.get("status");
             String title = (String) hm.get("name");
-            String filepath = (String) hm.get("downloadDir");
+            String downloadDir = (String) hm.get("downloadDir");
             long size = (long) hm.get("sizeWhenDone");
             Number progress = (Number) hm.get("percentDone");
             long downloaded = (long) hm.get("downloadedEver");
@@ -443,36 +497,35 @@ public class TransmissionClientWrapper implements ClientWrapper
             long uploadSpeed = (long) hm.get("rateUpload");
             long downloadSpeed = (long) hm.get("rateDownload");
             long eta = (long) hm.get("eta");
-            long remaining = (long) hm.get("leftUntilDone");
 
             exists = false;
 
-            RemoteTorrentStatus remoteTorrentStatus = null;
+            String remoteTorrentStatus = null;
             switch((int) status)
             {
                 case 0:
-                        remoteTorrentStatus = RemoteTorrentStatus.PAUSED;
+                        remoteTorrentStatus = RemoteTorrent.PAUSED;
                         break;
                 case 1:
-                        remoteTorrentStatus = RemoteTorrentStatus.WAITING;
+                        remoteTorrentStatus = RemoteTorrent.WAITING;
                         break;
                 case 2:
-                        remoteTorrentStatus = RemoteTorrentStatus.CHECKING;
+                        remoteTorrentStatus = RemoteTorrent.CHECKING;
                         break;
                 case 3:
-                        remoteTorrentStatus = RemoteTorrentStatus.QUEUED;
+                        remoteTorrentStatus = RemoteTorrent.QUEUED;
                         break;
                 case 4:
-                        remoteTorrentStatus = RemoteTorrentStatus.DOWNLOADING;
+                        remoteTorrentStatus = RemoteTorrent.DOWNLOADING;
                         break;
                 case 5:
-                        remoteTorrentStatus = RemoteTorrentStatus.QUEUED;
+                        remoteTorrentStatus = RemoteTorrent.QUEUED;
                         break;
                 case 6:
-                        remoteTorrentStatus = RemoteTorrentStatus.SEEDING;
+                        remoteTorrentStatus = RemoteTorrent.SEEDING;
                         break;
                 default:
-                        remoteTorrentStatus = RemoteTorrentStatus.UNKOWN;
+                        remoteTorrentStatus = RemoteTorrent.UNKOWN;
                         break;
             }
 
@@ -487,7 +540,6 @@ public class TransmissionClientWrapper implements ClientWrapper
                     rt.setUploadSpeed(uploadSpeed);
                     rt.setEta(eta);
                     rt.setRatio(ratio.doubleValue());
-                    rt.setRemaining(remaining);
                     rt.setStatus(remoteTorrentStatus);
 
                     temp.remove(rt);
@@ -515,7 +567,7 @@ public class TransmissionClientWrapper implements ClientWrapper
 
                 rt.setTitle(title);
                 rt.setNumberId(id);
-                rt.setFilepath(filepath);
+                rt.setDownloadDirectory(downloadDir);
                 rt.setSize(size);
 
                 rt.setProgress(progress.doubleValue());
@@ -525,7 +577,6 @@ public class TransmissionClientWrapper implements ClientWrapper
                 rt.setUploadSpeed(uploadSpeed);
                 rt.setEta(eta);
                 rt.setRatio(ratio.doubleValue());
-                rt.setRemaining(remaining);
                 rt.setStatus(remoteTorrentStatus);
 
                 userList.add(rt);

@@ -33,16 +33,21 @@ public class UtorrentClientWrapper implements ClientWrapper
     private String cookie;
     private String basicAuth;
 
+    public UtorrentClientWrapper()
+    {
+        // No auth
+    }
+
     public UtorrentClientWrapper(String username, String password)
     {
         basicAuth = DatatypeConverter.printBase64Binary((username + ":" + password).getBytes());
     }
 
-    public UtorrentClientWrapper(String username, String password, int port)
+    public UtorrentClientWrapper(String username, String password, String ip, int port)
     {
         basicAuth = DatatypeConverter.printBase64Binary((username + ":" + password).getBytes());
 
-        API_URL = "http://127.0.0.1:" + port + "/gui/";
+        API_URL = "http://" + ip + ":" + port + "/gui/";
     }
 
     //Implemented methods
@@ -53,10 +58,29 @@ public class UtorrentClientWrapper implements ClientWrapper
         sendRequest("action=add-url&s=" + url);
     }
 
+    @Override
     public void addTorrent(File file) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
     {
         uploadFile(file);
     }        
+
+    @Override
+    public void addTorrent(String url, String path) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
+    {
+        throw new UnsupportedOperationException("Adding a torrent with a specified path is not supported by the uTorrent API");
+    }        
+
+    @Override
+    public void addTorrent(File file, File path) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
+    {
+        throw new UnsupportedOperationException("Adding a torrent with a specified path is not supported by the uTorrent API");
+    }
+
+    @Override
+    public void addTorrent(File file, String path) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
+    {
+        throw new UnsupportedOperationException("Adding a torrent with a specified path is not supported by the uTorrent API");
+    }
 
     @Override
     public void pauseTorrent(RemoteTorrent remoteTorrent) throws RemoteTorrentConnectionException, RemoteTorrentUnauthorizedException
@@ -110,44 +134,43 @@ public class UtorrentClientWrapper implements ClientWrapper
             long uploadSpeed = (long) al.get(8);
             long downloadSpeed = (long) al.get(9);
             long eta = (long) al.get(10);
-            long remaining = (long) al.get(18);
-            String filepath = (String) al.get(26);
+            String downloadDir = (String) al.get(26);
 
             //Convert status
-            RemoteTorrentStatus remoteTorrentStatus;
+            String remoteTorrentStatus;
             if(status.get(0))
             {
                 if(status.get(5))
                 {
-                    remoteTorrentStatus = RemoteTorrentStatus.PAUSED;
+                    remoteTorrentStatus = RemoteTorrent.PAUSED;
                 }
                 else if(downloaded == 1000)
                 {
-                    remoteTorrentStatus = RemoteTorrentStatus.SEEDING;
+                    remoteTorrentStatus = RemoteTorrent.SEEDING;
                 }
                 else
                 {
-                    remoteTorrentStatus = RemoteTorrentStatus.DOWNLOADING;
+                    remoteTorrentStatus = RemoteTorrent.DOWNLOADING;
                 }
             }
             else if(status.get(1))
             {
-                remoteTorrentStatus = RemoteTorrentStatus.CHECKING;
+                remoteTorrentStatus = RemoteTorrent.CHECKING;
             }
             else if(status.get(4))
             {
-                remoteTorrentStatus = RemoteTorrentStatus.ERROR;
+                remoteTorrentStatus = RemoteTorrent.ERROR;
             }
             else if(status.get(7))
             {
-                remoteTorrentStatus = RemoteTorrentStatus.QUEUED;
+                remoteTorrentStatus = RemoteTorrent.QUEUED;
             }
             else
             {
-                remoteTorrentStatus = RemoteTorrentStatus.WAITING;
+                remoteTorrentStatus = RemoteTorrent.WAITING;
             }
 
-            DefaultRemoteTorrent rt = new DefaultRemoteTorrent(id, title, filepath, size);
+            DefaultRemoteTorrent rt = new DefaultRemoteTorrent(id, title, downloadDir, size);
             rt.setProgress((double) progress / 1000.0); //Convert to promille
             rt.setDownloaded(downloaded);
             rt.setUploaded(uploaded);
@@ -155,7 +178,6 @@ public class UtorrentClientWrapper implements ClientWrapper
             rt.setUploadSpeed(uploadSpeed);
             rt.setEta(eta);
             rt.setRatio((double) ratio / 1000.0); //Convert to promille
-            rt.setRemaining(remaining);
             rt.setStatus(remoteTorrentStatus);
 
             returned.add(rt);
@@ -190,43 +212,42 @@ public class UtorrentClientWrapper implements ClientWrapper
             long uploadSpeed = (long) al.get(8);
             long downloadSpeed = (long) al.get(9);
             long eta = (long) al.get(10);
-            long remaining = (long) al.get(18);
-            String filepath = (String) al.get(26);
+            String downloadDir = (String) al.get(26);
 
             exists = false;
 
             //Convert status
-            RemoteTorrentStatus remoteTorrentStatus;
+            String remoteTorrentStatus;
             if(status.get(0))
             {
                 if(status.get(5))
                 {
-                    remoteTorrentStatus = RemoteTorrentStatus.PAUSED;
+                    remoteTorrentStatus = RemoteTorrent.PAUSED;
                 }
                 else if(downloaded == 1000)
                 {
-                    remoteTorrentStatus = RemoteTorrentStatus.SEEDING;
+                    remoteTorrentStatus = RemoteTorrent.SEEDING;
                 }
                 else
                 {
-                    remoteTorrentStatus = RemoteTorrentStatus.DOWNLOADING;
+                    remoteTorrentStatus = RemoteTorrent.DOWNLOADING;
                 }
             }
             else if(status.get(1))
             {
-                remoteTorrentStatus = RemoteTorrentStatus.CHECKING;
+                remoteTorrentStatus = RemoteTorrent.CHECKING;
             }
             else if(status.get(4))
             {
-                remoteTorrentStatus = RemoteTorrentStatus.ERROR;
+                remoteTorrentStatus = RemoteTorrent.ERROR;
             }
             else if(status.get(7))
             {
-                remoteTorrentStatus = RemoteTorrentStatus.QUEUED;
+                remoteTorrentStatus = RemoteTorrent.QUEUED;
             }
             else
             {
-                remoteTorrentStatus = RemoteTorrentStatus.WAITING;
+                remoteTorrentStatus = RemoteTorrent.WAITING;
             }
 
             for(RemoteTorrent rt : userList)
@@ -240,7 +261,6 @@ public class UtorrentClientWrapper implements ClientWrapper
                     rt.setUploadSpeed(uploadSpeed);
                     rt.setEta(eta);
                     rt.setRatio((double) ratio / 1000.0); //Convert to promille
-                    rt.setRemaining(remaining);
                     rt.setStatus(remoteTorrentStatus);
 
                     temp.remove(rt);
@@ -268,7 +288,7 @@ public class UtorrentClientWrapper implements ClientWrapper
 
                 rt.setTitle(title);
                 rt.setStringId(id);
-                rt.setFilepath(filepath);
+                rt.setDownloadDirectory(downloadDir);
                 rt.setSize(size);
 
                 rt.setProgress((double) progress / 1000.0); //Convert to promille
@@ -278,7 +298,6 @@ public class UtorrentClientWrapper implements ClientWrapper
                 rt.setUploadSpeed(uploadSpeed);
                 rt.setEta(eta);
                 rt.setRatio((double) ratio / 1000.0); //Convert to promille
-                rt.setRemaining(remaining);
                 rt.setStatus(remoteTorrentStatus);
 
                 userList.add(rt);
@@ -317,43 +336,42 @@ public class UtorrentClientWrapper implements ClientWrapper
             long uploadSpeed = (long) al.get(8);
             long downloadSpeed = (long) al.get(9);
             long eta = (long) al.get(10);
-            long remaining = (long) al.get(18);
-            String filepath = (String) al.get(26);
+            String downloadDir = (String) al.get(26);
 
             exists = false;
 
             //Convert status
-            RemoteTorrentStatus remoteTorrentStatus;
+            String remoteTorrentStatus;
             if(status.get(0))
             {
                 if(status.get(5))
                 {
-                    remoteTorrentStatus = RemoteTorrentStatus.PAUSED;
+                    remoteTorrentStatus = RemoteTorrent.PAUSED;
                 }
                 else if(downloaded == 1000)
                 {
-                    remoteTorrentStatus = RemoteTorrentStatus.SEEDING;
+                    remoteTorrentStatus = RemoteTorrent.SEEDING;
                 }
                 else
                 {
-                    remoteTorrentStatus = RemoteTorrentStatus.DOWNLOADING;
+                    remoteTorrentStatus = RemoteTorrent.DOWNLOADING;
                 }
             }
             else if(status.get(1))
             {
-                remoteTorrentStatus = RemoteTorrentStatus.CHECKING;
+                remoteTorrentStatus = RemoteTorrent.CHECKING;
             }
             else if(status.get(4))
             {
-                remoteTorrentStatus = RemoteTorrentStatus.ERROR;
+                remoteTorrentStatus = RemoteTorrent.ERROR;
             }
             else if(status.get(7))
             {
-                remoteTorrentStatus = RemoteTorrentStatus.QUEUED;
+                remoteTorrentStatus = RemoteTorrent.QUEUED;
             }
             else
             {
-                remoteTorrentStatus = RemoteTorrentStatus.WAITING;
+                remoteTorrentStatus = RemoteTorrent.WAITING;
             }
 
             for(RemoteTorrent rt : userList)
@@ -367,7 +385,6 @@ public class UtorrentClientWrapper implements ClientWrapper
                     rt.setUploadSpeed(uploadSpeed);
                     rt.setEta(eta);
                     rt.setRatio((double) ratio / 1000.0); //Convert to promille
-                    rt.setRemaining(remaining);
                     rt.setStatus(remoteTorrentStatus);
 
                     temp.remove(rt);
@@ -395,7 +412,7 @@ public class UtorrentClientWrapper implements ClientWrapper
 
                 rt.setTitle(title);
                 rt.setStringId(id);
-                rt.setFilepath(filepath);
+                rt.setDownloadDirectory(downloadDir);
                 rt.setSize(size);
 
                 rt.setProgress((double) progress / 1000.0); //Convert to promille
@@ -405,7 +422,6 @@ public class UtorrentClientWrapper implements ClientWrapper
                 rt.setUploadSpeed(uploadSpeed);
                 rt.setEta(eta);
                 rt.setRatio((double) ratio / 1000.0); //Convert to promille
-                rt.setRemaining(remaining);
                 rt.setStatus(remoteTorrentStatus);
 
                 userList.add(rt);
