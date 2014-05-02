@@ -18,7 +18,6 @@ import moe.zenbutorrent.main.java.remote.exceptions.RemoteTorrentConnectionExcep
 import moe.zenbutorrent.main.java.remote.exceptions.RemoteTorrentUnauthorizedException;
 import moe.zenbutorrent.main.java.remote.torrent.DefaultRemoteTorrent;
 import moe.zenbutorrent.main.java.remote.torrent.RemoteTorrent;
-import moe.zenbutorrent.main.java.remote.torrent.RemoteTorrentStatus;
 import moe.zenbutorrent.main.java.remote.torrent.file.RemoteTorrentFile;
 
 import org.json.simple.JSONObject;

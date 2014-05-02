@@ -1,6 +1,5 @@
 package moe.zenbutorrent.main.java.remote.torrent;
 
-
 public class DefaultRemoteTorrent implements RemoteTorrent
 {
     private String stringId = null;
