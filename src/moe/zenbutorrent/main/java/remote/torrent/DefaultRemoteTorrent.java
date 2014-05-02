@@ -6,11 +6,10 @@ public class DefaultRemoteTorrent implements RemoteTorrent
     private String stringId = null;
     private Number numberId = null;
     private String title;
-    private String filepath;
-    private RemoteTorrentStatus status;
+    private String downloadDir;
+    private String status;
     private long size; //In bytes
     private double progress; //In promille ex: 0.0523 = 5.23%
-    private long remaining; //In bytes
     private long downloaded; //In bytes
     private long uploaded; //In bytes
     private double ratio; //In promille
@@ -18,19 +17,19 @@ public class DefaultRemoteTorrent implements RemoteTorrent
     private long downloadSpeed; //In bytes per second
     private long eta; //In seconds
 
-    public DefaultRemoteTorrent(String stringId, String title, String filepath, long size)
+    public DefaultRemoteTorrent(String stringId, String title, String downloadDir, long size)
     {
         this.stringId = stringId;
         this.title = title;
-        this.filepath = filepath;
+        this.downloadDir = downloadDir;
         this.size = size;
     }
 
-    public DefaultRemoteTorrent(Number numberId, String title, String filepath, long size)
+    public DefaultRemoteTorrent(Number numberId, String title, String downloadDir, long size)
     {
         this.numberId = numberId;
         this.title = title;
-        this.filepath = filepath;
+        this.downloadDir = downloadDir;
         this.size = size;
     }
 
@@ -69,22 +68,22 @@ public class DefaultRemoteTorrent implements RemoteTorrent
         this.title = title;
     }
 
-    public String getFilepath()
+    public String getDownloadDirectory()
     {
-        return filepath;
+        return downloadDir;
     }
 
-    public void setFilepath(String filepath)
+    public void setDownloadDirectory(String downloadDir)
     {
-        this.filepath = filepath;
+        this.downloadDir = downloadDir;
     }
 
-    public RemoteTorrentStatus getStatus()
+    public String getStatus()
     {
         return status;
     }
 
-    public void setStatus(RemoteTorrentStatus status)
+    public void setStatus(String status)
     {
         this.status = status;
     }
@@ -107,16 +106,6 @@ public class DefaultRemoteTorrent implements RemoteTorrent
     public void setProgress(double progress)
     {
         this.progress = progress;
-    }
-
-    public long getRemaining()
-    {
-        return remaining;
-    }
-
-    public void setRemaining(long remaining)
-    {
-        this.remaining = remaining;
     }
 
     public long getDownloaded()
