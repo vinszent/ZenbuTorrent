@@ -2,6 +2,19 @@ Lightweight library with minimal dependencies that wraps common torrent clients 
 
 [Javadocs 0.0.1](https://ippytraxx.github.io/ZenbuTorrent)
 
+__Supported clients__
+
+* Utorrent / Bittorrent mainline
+* Transmission
+* Deluge
+
+__Planned clients__
+
+* Qbittorrent
+* Vuze
+* Rtorrent
+
+
 __Quickstart__
 
 	ClientWrapper wrapper = new TransmissionWrapper("user", "pass");
